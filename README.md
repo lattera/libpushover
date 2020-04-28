@@ -15,7 +15,7 @@ away from libcurl to libfetch is planned.
 The following code sample illustrates how easy it is to use
 libpushover:
 
-``
+```
 #include <err.h>
 #include <libpushover.h>
 
@@ -39,4 +39,4 @@ pushover_submit_message(ctx, msg);
 
 pushover_free_message(&msg);
 pushover_free_ctx(&ctx);
-``
+```
