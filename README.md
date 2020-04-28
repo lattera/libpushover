@@ -28,13 +28,13 @@ if (ctx == NULL) {
 }
 
 msg = pushover_init_message(NULL);
-if (pmsg == NULL) {
+if (msg == NULL) {
 	errx("Pushover message init failed.");
 }
 
-pushover_message_set_dest("Destination token");
-pushover_message_set_title("Message title");
-pushover_message_set_msg("Message body content");
+pushover_message_set_dest(msg, "Destination token");
+pushover_message_set_title(msg, "Message title");
+pushover_message_set_msg(msg, "Message body content");
 pushover_submit_message(ctx, msg);
 
 pushover_free_message(&msg);
