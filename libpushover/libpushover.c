@@ -76,6 +76,7 @@ pushover_free_ctx(pushover_ctx_t **ctx)
 
 	free(ctxp->psh_uri);
 	free(ctxp->psh_token);
+	memset(ctxp, 0, sizeof(*ctxp));
 	free(ctxp);
 	*ctx = NULL;
 }
@@ -87,6 +88,7 @@ pushover_set_uri(pushover_ctx_t *ctx, const char *uri)
 
 	assert(ctx != NULL);
 	assert(uri != NULL);
+	assert(ctx->psh_uri == NULL);
 
 	ctx->psh_uri = strdup(uri);
 	return (ctx->psh_uri != NULL);
@@ -99,6 +101,7 @@ pushover_set_token(pushover_ctx_t *ctx, const char *token)
 
 	assert(ctx != NULL);
 	assert(token != NULL);
+	assert(ctx->psh_token == NULL);
 
 	ctx->psh_token = strdup(token);
 	return (ctx->psh_token != NULL);
@@ -132,18 +135,21 @@ void
 pushover_free_message(pushover_message_t **msg)
 {
 	pushover_message_t *msgp;
+	uint64_t flags;
 
 	if (msg == NULL || *msg == NULL)
 		return;
 
 	msgp = *msg;
+	flags = msgp->psh_flags;
 
 	free(msgp->psh_dest);
 	free(msgp->psh_msg);
 	free(msgp->psh_title);
 	free(msgp->psh_device);
+	memset(msgp, 0, sizeof(*msgp));
 
-	if (msgp->psh_flags & PUSHOVER_FLAGS_ALLOC) {
+	if (flags & PUSHOVER_FLAGS_ALLOC) {
 		free(msgp);
 		*msg = NULL;
 	}
@@ -156,6 +162,7 @@ pushover_message_set_msg(pushover_message_t *msg, char *data)
 
 	assert(msg != NULL);
 	assert(data != NULL);
+	assert(msg->psh_msg == NULL);
 
 	msg->psh_msg = strdup(data);
 	return (msg->psh_msg != NULL);
@@ -168,6 +175,7 @@ pushover_message_set_dest(pushover_message_t *msg, char *dest)
 
 	assert(msg != NULL);
 	assert(dest != NULL);
+	assert(msg->psh_dest == NULL);
 
 	msg->psh_dest = strdup(dest);
 	return (msg->psh_dest != NULL);
@@ -180,6 +188,7 @@ pushover_message_set_title(pushover_message_t *msg, char *title)
 
 	assert(msg != NULL);
 	assert(title != NULL);
+	assert(msg->psh_title == NULL);
 
 	msg->psh_title = strdup(title);
 	return (msg->psh_title != NULL);
@@ -192,6 +201,7 @@ pushover_message_set_device(pushover_message_t *msg, char *device)
 
 	assert(msg != NULL);
 	assert(device != NULL);
+	assert(msg->psh_device == NULL);
 
 	msg->psh_device = strdup(device);
 	return (msg->psh_device != NULL);
@@ -205,7 +215,7 @@ pushover_message_set_priority(pushover_message_t *msg,
 
 	assert(msg != NULL);
 
-	if (!pushover_message_priority_sane(msg->psh_priority))
+	if (!pushover_message_priority_sane(prio))
 		return (false);
 
 	msg->psh_priority = prio;
@@ -223,8 +233,10 @@ pushover_submit_message(pushover_ctx_t *ctx, pushover_message_t *msg)
 	bool res;
 
 	assert(ctx != NULL);
-	assert(msg != NULL);
+	assert(ctx->psh_uri != NULL);
 	assert(ctx->psh_token != NULL);
+
+	assert(msg != NULL);
 	assert(msg->psh_dest != NULL);
 	assert(msg->psh_msg != NULL);
 	assert(pushover_message_priority_sane(msg->psh_priority));
@@ -259,8 +271,8 @@ end:
 static char *
 msg_to_str(pushover_ctx_t *ctx, pushover_message_t *msg, CURL *curl)
 {
-	char *p, *res;
 	struct sbuf *sb;
+	char *p, *res;
 
 	assert(ctx != NULL);
 	assert(msg != NULL);
@@ -279,7 +291,7 @@ msg_to_str(pushover_ctx_t *ctx, pushover_message_t *msg, CURL *curl)
 		if (sbuf_printf(sb, "&device=%s", p)) {
 			goto end;
 		}
-		free(p);
+		curl_free(p);
 	}
 	if (msg->psh_msg != NULL) {
 		p = curl_easy_escape(curl, msg->psh_msg, 0);
@@ -289,7 +301,7 @@ msg_to_str(pushover_ctx_t *ctx, pushover_message_t *msg, CURL *curl)
 		if (sbuf_printf(sb, "&message=%s", p)) {
 			goto end;
 		}
-		free(p);
+		curl_free(p);
 	}
 	if (msg->psh_title != NULL) {
 		p = curl_easy_escape(curl, msg->psh_title, 0);
@@ -299,7 +311,7 @@ msg_to_str(pushover_ctx_t *ctx, pushover_message_t *msg, CURL *curl)
 		if (sbuf_printf(sb, "&title=%s", p)) {
 			goto end;
 		}
-		free(p);
+		curl_free(p);
 	}
 	if (ctx->psh_token != NULL) {
 		p = curl_easy_escape(curl, ctx->psh_token, 0);
@@ -309,7 +321,7 @@ msg_to_str(pushover_ctx_t *ctx, pushover_message_t *msg, CURL *curl)
 		if (sbuf_printf(sb, "&token=%s", p)) {
 			goto end;
 		}
-		free(p);
+		curl_free(p);
 	}
 	if (msg->psh_dest != NULL) {
 		p = curl_easy_escape(curl, msg->psh_dest, 0);
@@ -319,7 +331,7 @@ msg_to_str(pushover_ctx_t *ctx, pushover_message_t *msg, CURL *curl)
 		if (sbuf_printf(sb, "&user=%s", p)) {
 			goto end;
 		}
-		free(p);
+		curl_free(p);
 	}
 
 	if (sbuf_printf(sb, "&priority=%d", msg->psh_priority)) {
@@ -332,6 +344,7 @@ end:
 			return (NULL);
 		}
 		res = strdup(sbuf_data(sb));
+		sbuf_delete(sb);
 	}
 	return (res);
 }
