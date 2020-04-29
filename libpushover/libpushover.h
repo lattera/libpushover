@@ -13,6 +13,12 @@
 #define	PUSHOVER_FLAGS_NONE	0
 #define	PUSHOVER_FLAGS_ALLOC	1
 
+struct _pushover_ctx;
+struct _pushover_message;
+
+typedef struct _pushover_ctx pushover_ctx_t;
+typedef struct _pushover_message pushover_message_t;
+
 typedef enum _pushover_priority {
 	PSH_PRIO_NONE = -2,
 	PSH_PRIO_QUIET = -1,
@@ -20,21 +26,6 @@ typedef enum _pushover_priority {
 	PSH_PRIO_HIGH = 1,
 	PSH_PRIO_CONFIRM = 2
 } pushover_priority_t;
-
-typedef struct _pushover_ctx {
-	uint64_t	 psh_version;
-	char		*psh_token;
-	char		*psh_uri;
-} pushover_ctx_t;
-
-typedef struct _pushover_message {
-	char			*psh_dest;
-	char			*psh_msg;
-	char			*psh_title;
-	char			*psh_device;
-	pushover_priority_t	 psh_priority;
-	uint64_t		 psh_flags;
-} pushover_message_t;
 
 pushover_ctx_t *pushover_init_ctx(const char *);
 void pushover_free_ctx(pushover_ctx_t **);

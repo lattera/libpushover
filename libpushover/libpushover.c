@@ -34,6 +34,21 @@
 
 #include "libpushover.h"
 
+struct _pushover_ctx {
+	uint64_t	 psh_version;
+	char		*psh_token;
+	char		*psh_uri;
+};
+
+struct _pushover_message {
+	char			*psh_dest;
+	char			*psh_msg;
+	char			*psh_title;
+	char			*psh_device;
+	pushover_priority_t	 psh_priority;
+	uint64_t		 psh_flags;
+};
+
 static char *msg_to_str(pushover_ctx_t *, pushover_message_t *, CURL *);
 static size_t pushover_curl_write_data(void *, size_t, size_t, void *);
 
@@ -54,8 +69,10 @@ pushover_init_ctx(const char *token)
 		goto out;
 	}
 
-	if (token != NULL)
+	if (token != NULL) {
 		res->psh_token = strdup(token);
+		assert(res->psh_token != NULL);
+	}
 
 	res->psh_version = LIBPUSHOVER_VERSION;
 
