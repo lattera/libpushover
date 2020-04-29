@@ -59,8 +59,9 @@ pushover_init_ctx(const char *token)
 	pushover_ctx_t *res;
 
 	res = calloc(1, sizeof(*res));
-	if (res == NULL)
+	if (res == NULL) {
 		return (NULL);
+	}
 
 	res->psh_uri = strdup(PUSHOVER_URI);
 	if (res->psh_uri == NULL) {
@@ -86,8 +87,9 @@ pushover_free_ctx(pushover_ctx_t **ctx)
 {
 	pushover_ctx_t *ctxp;
 
-	if (ctx == NULL || *ctx == NULL)
+	if (ctx == NULL || *ctx == NULL) {
 		return;
+	}
 
 	ctxp = *ctx;
 
@@ -139,8 +141,9 @@ pushover_init_message(pushover_message_t *msg)
 		memset(msg, 0, sizeof(*msg));
 	}
 
-	if (msg == NULL)
+	if (msg == NULL) {
 		return (NULL);
+	}
 
 	msg->psh_flags = flags;
 
@@ -154,8 +157,9 @@ pushover_free_message(pushover_message_t **msg)
 	pushover_message_t *msgp;
 	uint64_t flags;
 
-	if (msg == NULL || *msg == NULL)
+	if (msg == NULL || *msg == NULL) {
 		return;
+	}
 
 	msgp = *msg;
 	flags = msgp->psh_flags;
@@ -232,8 +236,9 @@ pushover_message_set_priority(pushover_message_t *msg,
 
 	assert(msg != NULL);
 
-	if (!pushover_message_priority_sane(prio))
+	if (!pushover_message_priority_sane(prio)) {
 		return (false);
+	}
 
 	msg->psh_priority = prio;
 
@@ -262,8 +267,9 @@ pushover_submit_message(pushover_ctx_t *ctx, pushover_message_t *msg)
 	post_str = NULL;
 
 	curl = curl_easy_init();
-	if (curl == NULL)
+	if (curl == NULL) {
 		goto end;
+	}
 
 	curl_easy_setopt(curl, CURLOPT_URL, ctx->psh_uri);
 
