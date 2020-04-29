@@ -341,6 +341,7 @@ msg_to_str(pushover_ctx_t *ctx, pushover_message_t *msg, CURL *curl)
 end:
 	if (sb != NULL) {
 		if (sbuf_finish(sb)) {
+			sbuf_delete(sb);
 			return (NULL);
 		}
 		res = strdup(sbuf_data(sb));
