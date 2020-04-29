@@ -312,6 +312,7 @@ msg_to_str(pushover_ctx_t *ctx, pushover_message_t *msg, CURL *curl)
 			goto end;
 		}
 		if (sbuf_printf(sb, "&device=%s", p)) {
+			curl_free(p);
 			goto end;
 		}
 		curl_free(p);
@@ -322,6 +323,7 @@ msg_to_str(pushover_ctx_t *ctx, pushover_message_t *msg, CURL *curl)
 			goto end;
 		}
 		if (sbuf_printf(sb, "&message=%s", p)) {
+			curl_free(p);
 			goto end;
 		}
 		curl_free(p);
@@ -332,6 +334,7 @@ msg_to_str(pushover_ctx_t *ctx, pushover_message_t *msg, CURL *curl)
 			goto end;
 		}
 		if (sbuf_printf(sb, "&title=%s", p)) {
+			curl_free(p);
 			goto end;
 		}
 		curl_free(p);
@@ -342,6 +345,7 @@ msg_to_str(pushover_ctx_t *ctx, pushover_message_t *msg, CURL *curl)
 			goto end;
 		}
 		if (sbuf_printf(sb, "&token=%s", p)) {
+			curl_free(p);
 			goto end;
 		}
 		curl_free(p);
@@ -352,6 +356,7 @@ msg_to_str(pushover_ctx_t *ctx, pushover_message_t *msg, CURL *curl)
 			goto end;
 		}
 		if (sbuf_printf(sb, "&user=%s", p)) {
+			curl_free(p);
 			goto end;
 		}
 		curl_free(p);
