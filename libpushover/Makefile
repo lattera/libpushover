@@ -8,4 +8,8 @@ LDFLAGS+=	-L/usr/local/lib
 
 LDADD=		-lcurl -lsbuf
 
+.if defined(PREFIX)
+LIBDIR=	${PREFIX}/lib
+.endif
+
 .include <bsd.lib.mk>
