@@ -9,7 +9,8 @@ LDFLAGS+=	-L/usr/local/lib
 LDADD=		-lcurl -lsbuf
 
 .if defined(PREFIX)
-LIBDIR=	${PREFIX}/lib
+LIBDIR=		${PREFIX}/lib
+INCLUDEDIR=	${PREFIX}/include
 .endif
 
 .include <bsd.lib.mk>
