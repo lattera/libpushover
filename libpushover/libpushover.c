@@ -24,7 +24,6 @@
  * SUCH DAMAGE.
  */
 
-#include <assert.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -51,6 +50,7 @@ struct _pushover_message {
 
 static char *msg_to_str(pushover_ctx_t *, pushover_message_t *, CURL *);
 static size_t pushover_curl_write_data(void *, size_t, size_t, void *);
+static bool _msg_can_submit(pushover_ctx_t *, pushover_message_t *);
 
 EXPORTED_SYM
 pushover_ctx_t *
@@ -72,7 +72,12 @@ pushover_init_ctx(const char *token)
 
 	if (token != NULL) {
 		res->psh_token = strdup(token);
-		assert(res->psh_token != NULL);
+		if (res->psh_token == NULL) {
+			free(res->psh_uri);
+			free(res);
+			res = NULL;
+			goto out;
+		}
 	}
 
 	res->psh_version = LIBPUSHOVER_VERSION;
@@ -105,9 +110,13 @@ bool
 pushover_set_uri(pushover_ctx_t *ctx, const char *uri)
 {
 
-	assert(ctx != NULL);
-	assert(uri != NULL);
-	assert(ctx->psh_uri == NULL);
+	if (ctx == NULL || uri == NULL) {
+		return (false);
+	}
+
+	if (ctx->psh_uri != NULL) {
+		free(ctx->psh_uri);
+	}
 
 	ctx->psh_uri = strdup(uri);
 	return (ctx->psh_uri != NULL);
@@ -118,9 +127,13 @@ bool
 pushover_set_token(pushover_ctx_t *ctx, const char *token)
 {
 
-	assert(ctx != NULL);
-	assert(token != NULL);
-	assert(ctx->psh_token == NULL);
+	if (ctx == NULL || token == NULL) {
+		return (false);
+	}
+
+	if (ctx->psh_token != NULL) {
+		free(ctx->psh_token);
+	}
 
 	ctx->psh_token = strdup(token);
 	return (ctx->psh_token != NULL);
@@ -181,9 +194,11 @@ bool
 pushover_message_set_msg(pushover_message_t *msg, char *data)
 {
 
-	assert(msg != NULL);
-	assert(data != NULL);
-	assert(msg->psh_msg == NULL);
+	if (msg == NULL || data == NULL) {
+		return (false);
+	}
+
+	free(msg->psh_msg);
 
 	msg->psh_msg = strdup(data);
 	return (msg->psh_msg != NULL);
@@ -194,9 +209,11 @@ bool
 pushover_message_set_dest(pushover_message_t *msg, char *dest)
 {
 
-	assert(msg != NULL);
-	assert(dest != NULL);
-	assert(msg->psh_dest == NULL);
+	if (msg == NULL || dest == NULL) {
+		return (false);
+	}
+
+	free(msg->psh_dest);
 
 	msg->psh_dest = strdup(dest);
 	return (msg->psh_dest != NULL);
@@ -207,9 +224,11 @@ bool
 pushover_message_set_title(pushover_message_t *msg, char *title)
 {
 
-	assert(msg != NULL);
-	assert(title != NULL);
-	assert(msg->psh_title == NULL);
+	if (msg == NULL || title == NULL) {
+		return (false);
+	}
+
+	free(msg->psh_title);
 
 	msg->psh_title = strdup(title);
 	return (msg->psh_title != NULL);
@@ -220,9 +239,11 @@ bool
 pushover_message_set_device(pushover_message_t *msg, char *device)
 {
 
-	assert(msg != NULL);
-	assert(device != NULL);
-	assert(msg->psh_device == NULL);
+	if (msg == NULL || device == NULL) {
+		return (false);
+	}
+
+	free(msg->psh_device);
 
 	msg->psh_device = strdup(device);
 	return (msg->psh_device != NULL);
@@ -234,7 +255,9 @@ pushover_message_set_priority(pushover_message_t *msg,
     pushover_priority_t prio)
 {
 
-	assert(msg != NULL);
+	if (msg == NULL) {
+		return (false);
+	}
 
 	if (!pushover_message_priority_sane(prio)) {
 		return (false);
@@ -254,14 +277,9 @@ pushover_submit_message(pushover_ctx_t *ctx, pushover_message_t *msg)
 	CURL *curl;
 	bool res;
 
-	assert(ctx != NULL);
-	assert(ctx->psh_uri != NULL);
-	assert(ctx->psh_token != NULL);
-
-	assert(msg != NULL);
-	assert(msg->psh_dest != NULL);
-	assert(msg->psh_msg != NULL);
-	assert(pushover_message_priority_sane(msg->psh_priority));
+	if (!_msg_can_submit(ctx, msg)) {
+		return (false);
+	}
 
 	res = false;
 	post_str = NULL;
@@ -297,8 +315,9 @@ msg_to_str(pushover_ctx_t *ctx, pushover_message_t *msg, CURL *curl)
 	struct sbuf *sb;
 	char *p, *res;
 
-	assert(ctx != NULL);
-	assert(msg != NULL);
+	if (ctx == NULL || msg == NULL) {
+		return (NULL);
+	}
 
 	sb = sbuf_new_auto();
 	if (sb == NULL) {
@@ -385,6 +404,26 @@ pushover_curl_write_data(void *buffer, size_t sz, size_t nmemb,
 
 	return (sz * nmemb);
 }
+
+static bool
+_msg_can_submit(pushover_ctx_t *ctx, pushover_message_t *msg)
+{
+
+	if (ctx == NULL || ctx->psh_uri == NULL || ctx->psh_token == NULL) {
+		return (false);
+	}
+
+	if (msg == NULL || msg->psh_dest == NULL || msg->psh_msg == NULL) {
+		return (false);
+	}
+
+	if (!pushover_message_priority_sane(msg->psh_priority)) {
+		return (false);
+	}
+
+	return (true);
+}
+
 
 __attribute__((constructor))
 static void
